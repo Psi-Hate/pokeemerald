@@ -126,17 +126,17 @@ void RtcIncrement(void)
     if ((gSaveBlock2Ptr->framecount % 60) == 0)
     { 
         // A little verbose, but basic time incrementation
-        if (gSaveBlock1Ptr->fakeRtc.second >= SECONDS_PER_MINUTE - 1) {
+        if (gSaveBlock1Ptr->fakeRtc.second >= SECONDS_PER_MINUTE) {
             gSaveBlock1Ptr->fakeRtc.second = 0;
             gSaveBlock1Ptr->fakeRtc.minute++;
         }
 
-        if (gSaveBlock1Ptr->fakeRtc.minute >= MINUTES_PER_HOUR - 1) {
+        if (gSaveBlock1Ptr->fakeRtc.minute >= MINUTES_PER_HOUR) {
             gSaveBlock1Ptr->fakeRtc.minute = 0;
             gSaveBlock1Ptr->fakeRtc.hour++;
         }
 
-        if (gSaveBlock1Ptr->fakeRtc.hour >= HOURS_PER_DAY - 1) {
+        if (gSaveBlock1Ptr->fakeRtc.hour >= HOURS_PER_DAY) {
             gSaveBlock1Ptr->fakeRtc.hour = 0;
             gSaveBlock1Ptr->fakeRtc.day++;
         }
@@ -296,23 +296,23 @@ void RtcCalcTimeDifference(struct SiiRtcInfo *rtc, struct Time *result, struct T
     result->hours = rtc->hour - t->hours;
     result->days = days - t->days;
 
-    //  if (result->seconds < 0)
-    //  {
-    //      result->seconds += SECONDS_PER_MINUTE;
-    //      --result->minutes;
-    //  }
-    //  
-    //  if (result->minutes < 0)
-    //  {
-    //      result->minutes += MINUTES_PER_HOUR;
-    //      --result->hours;
-    //  }
-    //  
-    //  if (result->hours < 0)
-    //  {
-    //      result->hours += HOURS_PER_DAY;
-    //      --result->days;
-    //  }
+    if (result->seconds < 0)
+    {
+        result->seconds += SECONDS_PER_MINUTE;
+        --result->minutes;
+    }
+    
+    if (result->minutes < 0)
+    {
+        result->minutes += MINUTES_PER_HOUR;
+        --result->hours;
+    }
+    
+    if (result->hours < 0)
+    {
+        result->hours += HOURS_PER_DAY;
+        --result->days;
+    }
 }
 
 void RtcCalcLocalTime(void)
