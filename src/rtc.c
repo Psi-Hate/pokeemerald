@@ -17,19 +17,19 @@ struct Time gLocalTime;
 static const struct SiiRtcInfo sRtcDummy = {0, MONTH_JAN, 1}; // 2000 Jan 1
 
 static const s32 sNumDaysInMonths[MONTH_COUNT] =
-{
-    [MONTH_JAN - 1] = 31,
-    [MONTH_FEB - 1] = 28,
-    [MONTH_MAR - 1] = 31,
-    [MONTH_APR - 1] = 30,
-    [MONTH_MAY - 1] = 31,
-    [MONTH_JUN - 1] = 30,
-    [MONTH_JUL - 1] = 31,
-    [MONTH_AUG - 1] = 31,
-    [MONTH_SEP - 1] = 30,
-    [MONTH_OCT - 1] = 31,
-    [MONTH_NOV - 1] = 30,
-    [MONTH_DEC - 1] = 31,
+    {
+        [MONTH_JAN - 1] = 31,
+        [MONTH_FEB - 1] = 28,
+        [MONTH_MAR - 1] = 31,
+        [MONTH_APR - 1] = 30,
+        [MONTH_MAY - 1] = 31,
+        [MONTH_JUN - 1] = 30,
+        [MONTH_JUL - 1] = 31,
+        [MONTH_AUG - 1] = 31,
+        [MONTH_SEP - 1] = 30,
+        [MONTH_OCT - 1] = 31,
+        [MONTH_NOV - 1] = 30,
+        [MONTH_DEC - 1] = 31,
 };
 
 void RtcDisableInterrupts(void)
@@ -96,7 +96,7 @@ u16 RtcGetDayCount(struct SiiRtcInfo *rtc)
 
 void RtcInit(void)
 {
-    sErrorStatus = 0;
+    /* sErrorStatus = 0;
 
     RtcDisableInterrupts();
     SiiRtcUnprotect();
@@ -115,7 +115,35 @@ void RtcInit(void)
         sErrorStatus = 0;
 
     RtcGetRawInfo(&sRtc);
-    sErrorStatus = RtcCheckInfo(&sRtc);
+    sErrorStatus = RtcCheckInfo(&sRtc); */
+
+    // sErrorStatus = 0;
+    // sErrorStatus = RtcCheckInfo(&sRtc);
+}
+
+void RtcIncrement(void)
+{
+    if ((gSaveBlock2Ptr->framecount % 60) == 0)
+    { 
+        // A little verbose, but basic time incrementation
+        if (gSaveBlock1Ptr->fakeRtc.second >= SECONDS_PER_MINUTE - 1) {
+            gSaveBlock1Ptr->fakeRtc.second = 0;
+            gSaveBlock1Ptr->fakeRtc.minute++;
+        }
+
+        if (gSaveBlock1Ptr->fakeRtc.minute >= MINUTES_PER_HOUR - 1) {
+            gSaveBlock1Ptr->fakeRtc.minute = 0;
+            gSaveBlock1Ptr->fakeRtc.hour++;
+        }
+
+        if (gSaveBlock1Ptr->fakeRtc.hour >= HOURS_PER_DAY - 1) {
+            gSaveBlock1Ptr->fakeRtc.hour = 0;
+            gSaveBlock1Ptr->fakeRtc.day++;
+        }
+        
+        gSaveBlock1Ptr->fakeRtc.second++;
+
+    }
 }
 
 u16 RtcGetErrorStatus(void)
@@ -125,30 +153,30 @@ u16 RtcGetErrorStatus(void)
 
 void RtcGetInfo(struct SiiRtcInfo *rtc)
 {
-    if (sErrorStatus & RTC_ERR_FLAG_MASK)
-        *rtc = sRtcDummy;
-    else
-        RtcGetRawInfo(rtc);
+    // if (sErrorStatus & RTC_ERR_FLAG_MASK)
+    //     *rtc = sRtcDummy;
+    // else
+    // RtcGetRawInfo(rtc);
 }
 
 void RtcGetDateTime(struct SiiRtcInfo *rtc)
 {
-    RtcDisableInterrupts();
-    SiiRtcGetDateTime(rtc);
-    RtcRestoreInterrupts();
+    // RtcDisableInterrupts();
+    // SiiRtcGetDateTime(rtc);
+    // RtcRestoreInterrupts();
 }
 
 void RtcGetStatus(struct SiiRtcInfo *rtc)
 {
-    RtcDisableInterrupts();
-    SiiRtcGetStatus(rtc);
-    RtcRestoreInterrupts();
+    // RtcDisableInterrupts();
+    // SiiRtcGetStatus(rtc);
+    // RtcRestoreInterrupts();
 }
 
 void RtcGetRawInfo(struct SiiRtcInfo *rtc)
 {
-    RtcGetStatus(rtc);
-    RtcGetDateTime(rtc);
+    // RtcGetStatus(rtc);
+    // RtcGetDateTime(rtc);
 }
 
 u16 RtcCheckInfo(struct SiiRtcInfo *rtc)
@@ -210,9 +238,9 @@ u16 RtcCheckInfo(struct SiiRtcInfo *rtc)
 
 void RtcReset(void)
 {
-    RtcDisableInterrupts();
-    SiiRtcReset();
-    RtcRestoreInterrupts();
+    //RtcDisableInterrupts();
+    //SiiRtcReset();
+    //RtcRestoreInterrupts();
 }
 
 void FormatDecimalTime(u8 *dest, s32 hour, s32 minute, s32 second)
@@ -237,7 +265,7 @@ void FormatHexTime(u8 *dest, s32 hour, s32 minute, s32 second)
 
 void FormatHexRtcTime(u8 *dest)
 {
-    FormatHexTime(dest, sRtc.hour, sRtc.minute, sRtc.second);
+    FormatHexTime(dest, gSaveBlock1Ptr->fakeRtc.hour, gSaveBlock1Ptr->fakeRtc.minute, gSaveBlock1Ptr->fakeRtc.second);
 }
 
 void FormatDecimalDate(u8 *dest, s32 year, s32 month, s32 day)
@@ -263,34 +291,34 @@ void FormatHexDate(u8 *dest, s32 year, s32 month, s32 day)
 void RtcCalcTimeDifference(struct SiiRtcInfo *rtc, struct Time *result, struct Time *t)
 {
     u16 days = RtcGetDayCount(rtc);
-    result->seconds = ConvertBcdToBinary(rtc->second) - t->seconds;
-    result->minutes = ConvertBcdToBinary(rtc->minute) - t->minutes;
-    result->hours = ConvertBcdToBinary(rtc->hour) - t->hours;
+    result->seconds = rtc->second - t->seconds;
+    result->minutes = rtc->minute - t->minutes;
+    result->hours = rtc->hour - t->hours;
     result->days = days - t->days;
 
-    if (result->seconds < 0)
-    {
-        result->seconds += SECONDS_PER_MINUTE;
-        --result->minutes;
-    }
-
-    if (result->minutes < 0)
-    {
-        result->minutes += MINUTES_PER_HOUR;
-        --result->hours;
-    }
-
-    if (result->hours < 0)
-    {
-        result->hours += HOURS_PER_DAY;
-        --result->days;
-    }
+    //  if (result->seconds < 0)
+    //  {
+    //      result->seconds += SECONDS_PER_MINUTE;
+    //      --result->minutes;
+    //  }
+    //  
+    //  if (result->minutes < 0)
+    //  {
+    //      result->minutes += MINUTES_PER_HOUR;
+    //      --result->hours;
+    //  }
+    //  
+    //  if (result->hours < 0)
+    //  {
+    //      result->hours += HOURS_PER_DAY;
+    //      --result->days;
+    //  }
 }
 
 void RtcCalcLocalTime(void)
 {
-    RtcGetInfo(&sRtc);
-    RtcCalcTimeDifference(&sRtc, &gLocalTime, &gSaveBlock2Ptr->localTimeOffset);
+    // RtcGetInfo(&sRtc);
+    RtcCalcTimeDifference(&gSaveBlock1Ptr->fakeRtc, &gLocalTime, &gSaveBlock2Ptr->localTimeOffset);
 }
 
 void RtcInitLocalTimeOffset(s32 hour, s32 minute)
@@ -304,8 +332,8 @@ void RtcCalcLocalTimeOffset(s32 days, s32 hours, s32 minutes, s32 seconds)
     gLocalTime.hours = hours;
     gLocalTime.minutes = minutes;
     gLocalTime.seconds = seconds;
-    RtcGetInfo(&sRtc);
-    RtcCalcTimeDifference(&sRtc, &gSaveBlock2Ptr->localTimeOffset, &gLocalTime);
+    // RtcGetInfo(&sRtc);
+    RtcCalcTimeDifference(&gSaveBlock1Ptr->fakeRtc, &gSaveBlock2Ptr->localTimeOffset, &gLocalTime);
 }
 
 void CalcTimeDifference(struct Time *result, struct Time *t1, struct Time *t2)
@@ -336,11 +364,11 @@ void CalcTimeDifference(struct Time *result, struct Time *t1, struct Time *t2)
 
 u32 RtcGetMinuteCount(void)
 {
-    RtcGetInfo(&sRtc);
-    return (HOURS_PER_DAY * MINUTES_PER_HOUR) * RtcGetDayCount(&sRtc) + MINUTES_PER_HOUR * sRtc.hour + sRtc.minute;
+    // RtcGetInfo(&sRtc);
+    return (HOURS_PER_DAY * MINUTES_PER_HOUR) * RtcGetDayCount(&gSaveBlock1Ptr->fakeRtc) + MINUTES_PER_HOUR * gSaveBlock1Ptr->fakeRtc.hour + gSaveBlock1Ptr->fakeRtc.minute;
 }
 
 u32 RtcGetLocalDayCount(void)
 {
-    return RtcGetDayCount(&sRtc);
+    return RtcGetDayCount(&gSaveBlock1Ptr->fakeRtc);
 }

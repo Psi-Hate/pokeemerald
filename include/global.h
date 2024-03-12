@@ -5,6 +5,7 @@
 #include <limits.h>
 #include "config.h" // we need to define config before gba headers as print stuff needs the functions nulled before defines.
 #include "gba/gba.h"
+#include "rtc.h"
 #include "constants/global.h"
 #include "constants/flags.h"
 #include "constants/vars.h"
@@ -517,7 +518,8 @@ struct SaveBlock2
              //u16 padding1:4;
              //u16 padding2;
     /*0x18*/ struct Pokedex pokedex;
-    /*0x90*/ u8 filler_90[0x8];
+    /*0x90*/ u8 filler_90[0x4];
+    /*0x94*/ u32 framecount;
     /*0x98*/ struct Time localTimeOffset;
     /*0xA0*/ struct Time lastBerryTreeUpdate;
     /*0xA8*/ u32 gcnLinkFlags; // Read by Pokémon Colosseum/XD
@@ -1064,7 +1066,8 @@ struct SaveBlock1
     /*0x3B58*/ LilycoveLady lilycoveLady;
     /*0x3B98*/ struct TrainerNameRecord trainerNameRecords[20];
     /*0x3C88*/ u8 registeredTexts[UNION_ROOM_KB_ROW_COUNT][21];
-    /*0x3D5A*/ u8 unused_3D5A[10];
+    // /*0x3D5A*/ u8 unused_3D5A[10];
+    /*0x3D5A*/ struct SiiRtcInfo fakeRtc;
     /*0x3D64*/ struct TrainerHillSave trainerHill;
     /*0x3D70*/ struct WaldaPhrase waldaPhrase;
     // sizeof: 0x3D88

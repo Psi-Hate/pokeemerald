@@ -76,9 +76,9 @@ static EWRAM_DATA u16 sTrainerId = 0;
 static void UpdateLinkAndCallCallbacks(void);
 static void InitMainCallbacks(void);
 static void CallCallbacks(void);
-#ifdef BUGFIX
+// #ifdef BUGFIX
 static void SeedRngWithRtc(void);
-#endif
+// #endif
 static void ReadKeys(void);
 void InitIntrHandlers(void);
 static void WaitForVBlank(void);
@@ -101,13 +101,11 @@ void AgbMain()
     m4aSoundInit();
     EnableVCountIntrAtLine150();
     InitRFU();
-    RtcInit();
+
     CheckForFlashMemory();
     InitMainCallbacks();
     InitMapMusic();
-#ifdef BUGFIX
-    SeedRngWithRtc(); // see comment at SeedRngWithRtc definition below
-#endif
+    SeedRngWithRtc();
     ClearDma3Requests();
     ResetBgs();
     SetDefaultFontsPointer();
@@ -162,6 +160,17 @@ void AgbMain()
             }
         }
 
+        // Add a framecounter for rtc calc
+        if (gSaveBlock2Ptr->framecount < 0xFFFFFFFF)
+        {
+            gSaveBlock2Ptr->framecount++;
+        }
+        else
+        {
+            gSaveBlock2Ptr->framecount = 0;
+        }
+        
+        RtcIncrement();
         PlayTimeCounter_Update();
         MapMusicMain();
         WaitForVBlank();
@@ -226,14 +235,14 @@ void EnableVCountIntrAtLine150(void)
 }
 
 // FRLG commented this out to remove RTC, however Emerald didn't undo this!
-#ifdef BUGFIX
+// #ifdef BUGFIX
 static void SeedRngWithRtc(void)
 {
     u32 seed = RtcGetMinuteCount();
     seed = (seed >> 16) ^ (seed & 0xFFFF);
     SeedRng(seed);
 }
-#endif
+// #endif
 
 void InitKeys(void)
 {
@@ -433,7 +442,7 @@ void DoSoftReset(void)
     DmaStop(1);
     DmaStop(2);
     DmaStop(3);
-    SiiRtcProtect();
+    // SiiRtcProtect();
     SoftReset(RESET_ALL);
 }
 
